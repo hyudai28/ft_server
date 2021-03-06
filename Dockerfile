@@ -11,12 +11,16 @@ RUN apt update \
     vim \
     wget \
     supervisor
-#–no-check-certificateで証明書の確認を行わない（wgetでダウンロード先がHTTPSの時にエラーが出てしまうのでその回避）
+
 RUN mkdir -p /var/www/html/wordpress \
-    && wget –no-check-certificate https://wordpress.org/latest.tar.gz \
-    && tar -xvzf latest.tar.gz /var/www/html/wordpress \
-    && rm latest.tar.gz \
-#    && mkdir -p /var/www/html/phpmyadmin \
-#    && wget –no-check-certificate https://files.phpmyadmin.net/phpMyAdmin/5.0.2/phpMyAdmin-5.0.2-all-languages.tar.gz \
-#    && tar -xvzf phpMyAdmin-5.0.2-all-languages.tar.gz /var/www/html/phpmyadmin \
-#    && rm phpMyAdmin-5.0.2-all-languages.tar.gz \
+    && mkdir -p /var/www/html/phpmyadmin
+
+#–no-check-certificateで証明書の確認を行わない（wgetでダウンロード先がHTTPSの時にエラーが出てしまうのでその回避）
+#-Cで展開先を指定する。
+RUN wget --no-check-certificate https://wordpress.org/latest.tar.gz \
+    && tar -xvf latest.tar.gz -C /var/www/html/wordpress \
+    && rm latest.tar.gz
+
+RUN wget --no-check-certificate https://files.phpmyadmin.net/phpMyAdmin/5.0.2/phpMyAdmin-5.0.2-all-languages.tar.gz \
+    && tar -xvf phpMyAdmin-5.0.2-all-languages.tar.gz -C /var/www/html/phpmyadmin \
+    && rm phpMyAdmin-5.0.2-all-languages.tar.gz
