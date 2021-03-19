@@ -1,4 +1,3 @@
-#secelet your OS
 FROM debian:buster
 
 #install use function
@@ -68,25 +67,26 @@ RUN set -ex; \
     && chmod +x /bin/entrykit \
     && entrykit --symlink
 
+#COPY src/default.tmpl /etc/nginx/sites-available/
 COPY src/default.tmpl /etc/nginx/sites-available/
-
-
+#COPY src/service_start.sh /tmp
+COPY src/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 #ssl
 RUN mkdir /etc/nginx/ssl \
-#    && openssl genrsa -out /etc/nginx/ssl/server.key 2048 \
-#    && openssl req -new -key /etc/nginx/ssl/server.key -out /etc/nginx/ssl/server.csr \
-#        -subj arg "/C=JP/ST=Tokyo/O=42tokyo/CN=hyudai" \
-#    && openssl x509 -days 3650 -req -signkey /etc/nginx/ssl/server.key -in /etc/nginx/ssl/sever.csr -out /etc/nginx/ssl/sercer.crt
-
     && openssl genrsa -out server.key 2048 \
     && openssl req -new -key server.key -out server.csr \
         -subj '/C=JP/ST=Tokyo/L=Tokyo/O=42tokyo/OU=Web/CN=hyudai' \
-    && openssl x509 -in server.csr -days 3650 -req -signkey server.key > server.crt
+    && openssl x509 -in server.csr -days 3650 -req -signkey server.key > server.crt \
+    && mv server.key server.crt server.csr /etc/nginx/ssl
 
+
+#EXPOSE 80 443
 
 
 #CMD tail -f /dev/null
-ENTRYPOINT ["render", "/etc/nginx/sites-available/default", "--", "bash", "/tmp/service_start.sh"]
+#ENTRYPOINT ["render", "/etc/nginx/sites-available/default", "--", "bash", "/tmp/service_start.sh"]
+ENTRYPOINT ["render", "/etc/nginx/sites-available/default", "--",  "/usr/bin/supervisord"]
+#CMD /tmp/service_start.sh
 
 EXPOSE 80 443
