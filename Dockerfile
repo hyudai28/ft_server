@@ -9,8 +9,6 @@ RUN set -ex; \
     php7.3 \
     php-cgi \
     php-common \
-    php-pear \
-    php-mbstring \
     php-zip \
     php-net-socket \
     php-gd \
@@ -28,13 +26,13 @@ RUN set -ex; \
 
 ENV DB_NAME=userdb \
     DB_USER=user \
-    DB_PASS=password \
+    DB_PASSWORD=password \
     DB_HOST=localhost
 
 RUN set -ex; \
         service mysql start; \
             mysql -e "CREATE DATABASE $DB_NAME;"; \
-            mysql -e "CREATE USER '$DB_USER'@'$DB_HOST' IDENTIFIED BY '$DB_PASS';"; \
+            mysql -e "CREATE USER '$DB_USER'@'$DB_HOST' IDENTIFIED BY '$DB_PASSWORD';"; \
             mysql -e "GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'$DB_HOST';"; \
             mysql -e "FLUSH PRIVILEGES;"
 
@@ -67,10 +65,10 @@ RUN set -ex; \
     && chmod +x /bin/entrykit \
     && entrykit --symlink
 
-#COPY src/default.tmpl /etc/nginx/sites-available/
-COPY src/default.tmpl /etc/nginx/sites-available/
-#COPY src/service_start.sh /tmp
-COPY src/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY --chown=app:app src/default.tmpl /etc/nginx/sites-available/
+COPY --chown=app:app src/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+COPY --chown=app:app src/wp-config.php /var/www/html/wordpress
 
 #ssl
 RUN mkdir /etc/nginx/ssl \
@@ -81,12 +79,7 @@ RUN mkdir /etc/nginx/ssl \
     && mv server.key server.crt server.csr /etc/nginx/ssl
 
 
-#EXPOSE 80 443
 
-
-#CMD tail -f /dev/null
-#ENTRYPOINT ["render", "/etc/nginx/sites-available/default", "--", "bash", "/tmp/service_start.sh"]
 ENTRYPOINT ["render", "/etc/nginx/sites-available/default", "--",  "/usr/bin/supervisord"]
-#CMD /tmp/service_start.sh
 
 EXPOSE 80 443
